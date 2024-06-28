@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   print_bits.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dcaro-ro <dcaro-ro@student.42lausanne.c    +#+  +:+       +#+        */
+/*   By: dcaro-ro <dcaro-ro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/28 11:53:49 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2024/06/28 12:06:33 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2024/06/28 13:14:32 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,11 @@ void	print_bits(unsigned char octet)
 	i = 7;
 	while (i >= 0)
 	{
-		if (octet & (1 << i))
-			bit = '1';
-		else
-			bit = '0';
+		bit = (octet >> i & 1) + '0';
 		write(1, &bit, 1);
 		i--;
 	}
+
 }
 
 /*int main()
