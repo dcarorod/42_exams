@@ -6,7 +6,7 @@
 /*   By: dcaro-ro <dcaro-ro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/30 16:25:13 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2024/06/30 17:40:10 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2024/06/30 17:49:33 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,10 +67,10 @@ static char	*ft_strncpy(char *dest, const char *src, int n)
 
 char	**ft_split(char *str)
 {
-	int		i = 0;
-	size_t	wlen;
+	size_t	i = 0;
+	size_t	wlen = 0;
 	char	**dest;
-	int		wc = count_words(str);
+	size_t		wc = count_words(str);
 
 	dest = malloc(sizeof(char *) * (wc + 1));
 	if (!dest)
@@ -86,7 +86,7 @@ char	**ft_split(char *str)
 			if (!dest[i])
 			{
 				while (i > 0)
-					free(str[--i]);
+					free(dest[--i]);
 				free(dest);
 				return (NULL);
 			}
@@ -99,17 +99,25 @@ char	**ft_split(char *str)
 	return (dest);
 }
 
-
-
-/*#include <stdio.h>
+/*
+#include <stdio.h>
 int	main(void)
 {
-	char *str = " djf ";
-	int	counter = count_words(str);
-	int	word_len = ft_wordlen(str);
+	char *input = "      Hello, 	world! \nThis is a test string.";
+	char **words = ft_split(input);
 
-	printf("String: %s\n", str);
-	printf("Word count: %d\n", counter);
-	printf("Word length: %d\n", word_len);
-	return (0);
-}*/
+	if (!words)
+	{
+		printf("Memory allocation failed.\n");
+		return 1;
+	}
+
+	for (int i = 0; words[i]; i++)
+	{
+		printf("Word %d: %s\n", i + 1, words[i]);
+		free(words[i]);
+	}
+	free(words);
+	return 0;
+}
+*/
