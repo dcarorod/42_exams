@@ -6,7 +6,7 @@
 /*   By: dcaro-ro <dcaro-ro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/30 16:25:13 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2024/06/30 17:49:33 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2024/07/06 00:55:30 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,8 +92,8 @@ char	**ft_split(char *str)
 			}
 			ft_strncpy(dest[i], str, wlen);
 			i++;
+			str += wlen;
 		}
-		str += wlen;
 	}
 	dest[i] = NULL;
 	return (dest);
