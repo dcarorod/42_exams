@@ -6,7 +6,7 @@
 /*   By: dcaro-ro <dcaro-ro@student.42lausanne.ch>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 14:02:46 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2024/12/22 23:05:18 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2024/12/22 23:20:50 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,3 +76,64 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		return (NICE_FUNCTION);
 	}
 }
+
+// void nice_function(void)
+// {
+// 	for (int i = 0; i < 5; i++)
+// 	{
+// 		printf("Counting: %d\n", i);
+// 		sleep(1);
+// 	}
+// }
+
+// void bad_function(void)
+// {
+// 	printf("This function is about to crash.\n");
+// 	int *ptr = NULL;
+// 	*ptr = 42; // Dereferencing a null pointer
+// }
+
+// void very_bad_function1(void)
+// {
+// 	printf("Infinite loop started...\n");
+// 	while (1) {} // Never stops
+// }
+
+// #include <time.h>
+
+// void very_bad_function(void)
+// {
+// 	srand(time(NULL));
+// 	int behavior = rand() % 3;
+
+// 	if (behavior == 0)
+// 	{
+// 		printf("I will crash now.\n");
+// 		int *ptr = NULL;
+// 		*ptr = 42; // Cause a crash
+// 	}
+// 	else if (behavior == 1)
+// 	{
+// 		printf("I will loop forever.\n");
+// 		while (1) {} // Infinite loop
+// 	}
+// 	else
+// 	{
+// 		printf("I will exit with a bad code.\n");
+// 		exit(1); // Non-zero exit status
+// 	}
+// }
+
+// int main(void)
+// {
+// 	printf("Testing nice function 1:\n");
+// 	sandbox(nice_function, 5, true);
+
+// 	printf("\nTesting bad function:\n");
+// 	sandbox(bad_function, 3, true);
+
+// 	printf("\nTesting very bad function:\n");
+// 	sandbox(very_bad_function, 3, true);
+
+// 	return (0);
+// }
