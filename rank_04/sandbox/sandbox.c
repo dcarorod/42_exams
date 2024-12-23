@@ -6,7 +6,7 @@
 /*   By: dcaro-ro <dcaro-ro@student.42lausanne.ch>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 14:02:46 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2024/12/22 23:20:50 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2024/12/23 18:33:05 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,27 +27,27 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 {
 	pid_t	pid;
 	pid_t	wait_pid;
-	int		wstatus;
+	int		wstatus; // status of child process
 
 	pid = fork();
 	if (pid == -1) // error
 		return (-1);
-	else if (pid == 0) //in child
+	else if (pid == 0) // child process
 	{
 		f();
 		exit(0);
 	}
-	else //in parent
+	else // parent process
 	{
 		if (timeout > 0)
 			alarm(timeout);
-		wait_pid = waitpid(pid, &wstatus, 0);
-		alarm(0);
+		wait_pid = waitpid(pid, &wstatus, 0); // wait for child process to finish
+		alarm(0); // cancel alarm
 		if (wait_pid == -1)
 		{
-			if (errno == EINTR)
+			if (errno == EINTR) // alarm interrupted waitpid
 			{
-				kill(pid, SIGKILL);
+				kill(pid, SIGKILL); // kill the child process
 				if (verbose)
 					printf("Bad function: timed out after %d seconds\n", timeout);
 				waitpid(pid, NULL, 0); // clean up zombie process
@@ -55,13 +55,13 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 			}
 			return (ERROR_FUNCTION);
 		}
-		if (WIFSIGNALED(wstatus))
+		if (WIFSIGNALED(wstatus)) // child process terminated by a signal
 		{
 			if (verbose)
 				printf("Bad function: %s\n", strsignal(WTERMSIG(wstatus)));
 			return (BAD_FUNCTION);
 		}
-		if (WIFEXITED(wstatus))
+		if (WIFEXITED(wstatus)) // child process terminated normally
 		{
 			int	exit_code = WEXITSTATUS(wstatus);
 			if (exit_code != 0)
