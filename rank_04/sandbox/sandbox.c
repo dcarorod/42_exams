@@ -6,7 +6,7 @@
 /*   By: dcaro-ro <dcaro-ro@student.42lausanne.ch>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 14:02:46 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2024/12/23 18:33:05 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2024/12/23 18:35:20 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,9 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		alarm(0); // cancel alarm
 		if (wait_pid == -1)
 		{
-			if (errno == EINTR) // alarm interrupted waitpid
+			//If the child process doesn't finish execution within this time frame,
+			//the SIGALRM signal is sent to the parent process.
+			if (errno == EINTR) // wait was interrupted by signal (SIGALRM)
 			{
 				kill(pid, SIGKILL); // kill the child process
 				if (verbose)
