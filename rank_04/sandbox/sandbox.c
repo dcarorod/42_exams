@@ -6,7 +6,7 @@
 /*   By: dcaro-ro <dcaro-ro@student.42lausanne.ch>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/22 14:02:46 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2024/12/23 18:35:20 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2025/01/30 00:11:55 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,121 +21,153 @@
 
 #define NICE_FUNCTION 1
 #define BAD_FUNCTION 0
-#define ERROR_FUNCTION -1
+#define INTERNAL_ERROR -1
+
+volatile sig_atomic_t timeout_flag = 0;
+
+void	alarm_handler(int signum)
+{
+	(void)signum;
+	timeout_flag = 1;
+}
 
 int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 {
-	pid_t	pid;
-	pid_t	wait_pid;
-	int		wstatus; // status of child process
+	pid_t				pid;
+	pid_t				wpid;
+	int					wstatus;
+	struct sigaction	sa;
+
+	sa.sa_handler = alarm_handler;
+	sa.sa_flags = 0;
+	for (size_t i = 0; i < sizeof(sa.sa_mask); i++)
+	{
+		((char *)&sa.sa_mask)[i] = 0;
+	}
+	if (sigaction(SIGALRM, &sa, NULL) == -1)
+	{
+		printf("sigaction failed\n"); //debug
+		return (INTERNAL_ERROR);
+	}
 
 	pid = fork();
-	if (pid == -1) // error
-		return (-1);
-	else if (pid == 0) // child process
+	if (pid == -1)
 	{
-		f();
-		exit(0);
+		printf("fork failed\n"); //debug
+		return (INTERNAL_ERROR);
 	}
-	else // parent process
+	if (pid == 0)
 	{
 		if (timeout > 0)
 			alarm(timeout);
-		wait_pid = waitpid(pid, &wstatus, 0); // wait for child process to finish
-		alarm(0); // cancel alarm
-		if (wait_pid == -1)
+		f();
+		exit(0);
+	}
+	else
+	{
+		if (timeout > 0)
+			alarm(timeout);
+		wpid = waitpid(pid, &wstatus, 0);
+		if (wpid == -1)
 		{
-			//If the child process doesn't finish execution within this time frame,
-			//the SIGALRM signal is sent to the parent process.
-			if (errno == EINTR) // wait was interrupted by signal (SIGALRM)
+			if (errno == EINTR)
 			{
-				kill(pid, SIGKILL); // kill the child process
+				kill(pid, SIGKILL);
 				if (verbose)
 					printf("Bad function: timed out after %d seconds\n", timeout);
-				waitpid(pid, NULL, 0); // clean up zombie process
+				waitpid(pid, NULL, 0);
 				return (BAD_FUNCTION);
 			}
-			return (ERROR_FUNCTION);
+			return (INTERNAL_ERROR);
 		}
-		if (WIFSIGNALED(wstatus)) // child process terminated by a signal
+		alarm(0);
+		if (WIFSIGNALED(wstatus))
 		{
+			int sig = WTERMSIG(wstatus);
 			if (verbose)
-				printf("Bad function: %s\n", strsignal(WTERMSIG(wstatus)));
+				printf("Bad function: %s\n", strsignal(sig));
 			return (BAD_FUNCTION);
 		}
-		if (WIFEXITED(wstatus)) // child process terminated normally
+		if (WIFEXITED(wstatus))
 		{
-			int	exit_code = WEXITSTATUS(wstatus);
+			int exit_code;
+			exit_code = WEXITSTATUS(wstatus);
 			if (exit_code != 0)
 			{
 				if (verbose)
-					printf("Bad function: exited with code: %d\n", exit_code);
+					printf("Bad function: exited with code %d\n", exit_code);
 				return (BAD_FUNCTION);
 			}
 		}
 		if (verbose)
-			printf("Nice function!\n");
+			printf("Nice function\n");
 		return (NICE_FUNCTION);
 	}
 }
 
-// void nice_function(void)
-// {
-// 	for (int i = 0; i < 5; i++)
-// 	{
-// 		printf("Counting: %d\n", i);
-// 		sleep(1);
-// 	}
-// }
 
-// void bad_function(void)
-// {
-// 	printf("This function is about to crash.\n");
-// 	int *ptr = NULL;
-// 	*ptr = 42; // Dereferencing a null pointer
-// }
+/* Test */
 
-// void very_bad_function1(void)
-// {
-// 	printf("Infinite loop started...\n");
-// 	while (1) {} // Never stops
-// }
+void nice_function(void)
+{
+	for (int i = 0; i < 5; i++)
+	{
+		printf("Counting: %d\n", i);
+		sleep(1);
+	}
+}
 
-// #include <time.h>
+void bf1(void)
+{
+	printf("This function is about to crash.\n");
+	int *ptr = NULL;
+	*ptr = 42; // Dereferencing a null pointer
+}
 
-// void very_bad_function(void)
-// {
-// 	srand(time(NULL));
-// 	int behavior = rand() % 3;
+void bf2(void)
+{
+	printf("Infinite loop started...\n");
+	while (1) {} // Never stops
+}
 
-// 	if (behavior == 0)
-// 	{
-// 		printf("I will crash now.\n");
-// 		int *ptr = NULL;
-// 		*ptr = 42; // Cause a crash
-// 	}
-// 	else if (behavior == 1)
-// 	{
-// 		printf("I will loop forever.\n");
-// 		while (1) {} // Infinite loop
-// 	}
-// 	else
-// 	{
-// 		printf("I will exit with a bad code.\n");
-// 		exit(1); // Non-zero exit status
-// 	}
-// }
+#include <time.h>
 
-// int main(void)
-// {
-// 	printf("Testing nice function 1:\n");
-// 	sandbox(nice_function, 5, true);
+void bf3(void)
+{
+	srand(time(NULL));
+	int behavior = rand() % 3;
 
-// 	printf("\nTesting bad function:\n");
-// 	sandbox(bad_function, 3, true);
+	if (behavior == 0)
+	{
+		printf("I will crash now.\n");
+		int *ptr = NULL;
+		*ptr = 42; // Cause a crash
+	}
+	else if (behavior == 1)
+	{
+		printf("I will loop forever.\n");
+		while (1) {} // Infinite loop
+	}
+	else
+	{
+		printf("I will exit with a bad code.\n");
+		exit(1); // Non-zero exit status
+	}
+}
 
-// 	printf("\nTesting very bad function:\n");
-// 	sandbox(very_bad_function, 3, true);
+int main(void)
+{
+	printf("Testing nice function 1:\n");
+	sandbox(nice_function, 5, true);
 
-// 	return (0);
-// }
+	printf("\n\nTesting bad function:\n");
+	sandbox(bf1, 3, true);
+
+	printf("\nTesting bad function:\n");
+	sandbox(bf2, 3, true);
+
+	printf("\nTesting very bad function:\n");
+	sandbox(bf3, 3, true);
+
+	return (0);
+}
