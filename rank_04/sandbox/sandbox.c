@@ -10,46 +10,39 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdbool.h>
-#include <stdlib.h> // exit
-#include <unistd.h> // fork, alarm
-#include <sys/wait.h> // waitpid
-#include <signal.h> // sigaction, kill, strsignal
-#include <errno.h> // errno
+#include <unistd.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <sys/wait.h>
+#include <errno.h>
+#include <stdbool.h>
 #include <string.h>
+#include <signal.h>
 
+#define INTERNAL_ERROR -1
 #define NICE_FUNCTION 1
 #define BAD_FUNCTION 0
-#define INTERNAL_ERROR -1
-
-volatile sig_atomic_t timeout_flag = 0;
 
 void	alarm_handler(int signum)
 {
 	(void)signum;
-	timeout_flag = 1;
 }
 
 int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 {
-	pid_t				pid;
-	pid_t				wpid;
-	int					wstatus;
+	pid_t			pid;
+	pid_t			wpid;
+	int			wstatus;
 	struct sigaction	sa;
 
 	sa.sa_handler = alarm_handler;
 	sa.sa_flags = 0;
-	for (size_t i = 0; i < sizeof(sa.sa_mask); i++)
-	{
-		((char *)&sa.sa_mask)[i] = 0;
-	}
+	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGALRM, &sa, NULL) == -1)
 	{
 		printf("sigaction failed\n"); //debug
-		return (INTERNAL_ERROR);
+		return (INTERNAL_ERROR); 
 	}
-
 	pid = fork();
 	if (pid == -1)
 	{
@@ -58,8 +51,7 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 	}
 	if (pid == 0)
 	{
-		if (timeout > 0)
-			alarm(timeout);
+
 		f();
 		exit(0);
 	}
@@ -68,6 +60,7 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		if (timeout > 0)
 			alarm(timeout);
 		wpid = waitpid(pid, &wstatus, 0);
+		alarm(0);
 		if (wpid == -1)
 		{
 			if (errno == EINTR)
@@ -80,7 +73,6 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 			}
 			return (INTERNAL_ERROR);
 		}
-		alarm(0);
 		if (WIFSIGNALED(wstatus))
 		{
 			int sig = WTERMSIG(wstatus);
@@ -104,7 +96,6 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		return (NICE_FUNCTION);
 	}
 }
-
 
 /* Test */
 
@@ -158,7 +149,7 @@ void bf3(void)
 int main(void)
 {
 	printf("Testing nice function 1:\n");
-	sandbox(nice_function, 5, true);
+	sandbox(nice_function, 10, true);
 
 	printf("\n\nTesting bad function:\n");
 	sandbox(bf1, 3, true);
