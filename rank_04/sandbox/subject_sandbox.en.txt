@@ -1,7 +1,8 @@
 Assignment name		:	sandbox
 Expected files		:	sandbox.c
 Allowed functions	:	fork, waitpid, exit, alarm, sigaction, kill,
-						printf, strsignal, errno
+				printf, strsignal, errno, sigaddset, sigemptyset,
+				sigdelset, sigfillset, sigismember
 ===============================================================================
 
 Write the following function:
