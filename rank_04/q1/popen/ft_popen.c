@@ -6,7 +6,7 @@
 /*   By: dcaro-ro <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 17:42:57 by dcaro-ro          #+#    #+#             */
-/*   Updated: 2025/02/10 18:10:08 by dcaro-ro         ###   ########.fr       */
+/*   Updated: 2025/02/10 19:21:27 by dcaro-ro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,4 +70,3 @@ int	ft_popen(const char *file, char *const argv[], char type)
 	}
 	return (-1);
 }
-
